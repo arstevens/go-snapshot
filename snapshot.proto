@@ -1,0 +1,46 @@
+syntax = "proto3";
+package snapshot;
+
+message Transaction {
+  // Unique ID for this transaction
+  string id = 1;
+  // Code indicating what the transaction is for
+  int32 action = 2;
+
+  // Reward that bystanders receive
+  double reward = 3;
+  // Exchange rate between gainer and loser
+  double exchange = 4;
+
+  // Node IDs for gaining and losing node
+  string gainer = 5;
+  string loser = 6;
+  // Node Ids for bystander nodes
+  repeated string bystanders = 7;
+}
+
+message Snapshot {
+  // Transaction this snapshot relates to
+  Transaction transaction = 1;
+  // ID of hash function used to create snapshot
+  string hash = 2;
+
+  // Information proving the validity of the transaction
+  // from the perspective of a node
+  message ProofTuple {
+    // Description of how many transactions this node
+    // has been a part of
+    message EpochPair {
+      string id = 1;
+      string epoch = 2;
+    }
+
+    EpochPair epoch = 1;
+
+    // Signatures to prove relevant information
+    string transaction_sign = 2;
+    string epoch_sign = 3;
+  }
+
+  repeated ProofTuple proofs = 3;
+}
