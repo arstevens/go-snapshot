@@ -110,6 +110,18 @@ func NewSimpleEpochTriplet(id string, epoch int32, balance float64) *SimpleEpoch
 	}
 }
 
+func (se *SimpleEpochTriplet) Sign(signer crypto.Signer) ([]byte, error) {
+	digest, err := digestMarshaler(se)
+	if err != nil {
+		return nil, &DigestErr{simpleErr{err: err, msg: "SimpleEpochTriplet.Sign()"}}
+	}
+	sig, err := signer.Sign(rand.Reader, digest, ProofHashFunc)
+	if err != nil {
+		return nil, &SignatureErr{simpleErr{err: err, msg: "SimpleEpochTriplet.Sign()"}}
+	}
+	return sig, nil
+}
+
 // Marhsal serializes SimpleEpochTriplet into a slice of bytes
 func (se *SimpleEpochTriplet) Marshal() ([]byte, error) {
 	out, err := proto.Marshal(se.protoEpochTriplet)
