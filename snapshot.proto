@@ -32,7 +32,7 @@ message Snapshot {
     // has been a part of
     message EpochPair {
       string id = 1;
-      string epoch = 2;
+      int32 epoch = 2;
     }
 
     EpochPair epoch = 1;

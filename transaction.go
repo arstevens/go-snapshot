@@ -11,6 +11,13 @@ type SimpleTransaction struct {
 	protoTransaction *Transaction
 }
 
+// NewSimpleTransaction returns an empty SimpleTransaction
+func NewSimpleTransaction() *SimpleTransaction {
+	return &SimpleTransaction{
+		protoTransaction: &Transaction{},
+	}
+}
+
 /* Marshal serializes the SimpleTransaction into a
 slice of bytes and returns an error if unable to marshal */
 func (st *SimpleTransaction) Marshal() ([]byte, error) {
@@ -39,7 +46,6 @@ func (st *SimpleTransaction) GetActionCode() int32 {
 
 // Setter for action code
 func (st *SimpleTransaction) SetActionCode(code int32) {
-	createIfNil(st)
 	st.protoTransaction.Action = code
 }
 
@@ -50,7 +56,6 @@ func (st *SimpleTransaction) GetBystanderReward() float64 {
 
 // Setter for bystander reward
 func (st *SimpleTransaction) SetBystanderReward(reward float64) {
-	createIfNil(st)
 	st.protoTransaction.Reward = reward
 }
 
@@ -61,7 +66,6 @@ func (st *SimpleTransaction) GetValueExchange() float64 {
 
 // Setter for value exchange
 func (st *SimpleTransaction) SetValueExchange(exchange float64) {
-	createIfNil(st)
 	st.protoTransaction.Exchange = exchange
 }
 
@@ -72,7 +76,6 @@ func (st *SimpleTransaction) GetGainingParty() string {
 
 // Setter for gaining party ID
 func (st *SimpleTransaction) SetGainingParty(gainer string) {
-	createIfNil(st)
 	st.protoTransaction.Gainer = gainer
 }
 
@@ -83,7 +86,6 @@ func (st *SimpleTransaction) GetLosingParty() string {
 
 // Setter for losing party ID
 func (st *SimpleTransaction) SetLosingParty(loser string) {
-	createIfNil(st)
 	st.protoTransaction.Loser = loser
 }
 
@@ -94,15 +96,5 @@ func (st *SimpleTransaction) GetBystanders() []string {
 
 // Setter for bystander IDs
 func (st *SimpleTransaction) SetBystanders(bystanders []string) {
-	createIfNil(st)
 	st.protoTransaction.Bystanders = bystanders
-}
-
-func createIfNil(st *SimpleTransaction) {
-	if st == nil {
-		st = &SimpleTransaction{}
-	}
-	if st.protoTransaction == nil {
-		st.protoTransaction = &Transaction{}
-	}
 }
