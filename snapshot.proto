@@ -30,12 +30,13 @@ message Snapshot {
   message ProofTuple {
     // Description of how many transactions this node
     // has been a part of
-    message EpochPair {
+    message EpochTriplet {
       string id = 1;
       int32 epoch = 2;
+      double balance = 3;
     }
 
-    EpochPair epoch = 1;
+    EpochTriplet epoch = 1;
 
     // Signatures to prove relevant information
     string transaction_sign = 2;

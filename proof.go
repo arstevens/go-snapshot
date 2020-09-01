@@ -25,7 +25,7 @@ type SimpleProofTuple struct {
 
 /* NewSimpleProofTuple instantiates a new SimpleProofTuple with
 the given attributes */
-func NewSimpleProofTuple(tx *SimpleTransaction, id string, epoch int32, signer crypto.Signer) (*SimpleProofTuple, error) {
+func NewSimpleProofTuple(tx *SimpleTransaction, id string, epoch int32, balance float64, signer crypto.Signer) (*SimpleProofTuple, error) {
 	tHashed, err := digestMarshaler(tx)
 	if err != nil {
 		return nil, &DigestErr{simpleErr{err: err, msg: "NewSimpleProofTuple() on Transaction"}}
@@ -35,8 +35,8 @@ func NewSimpleProofTuple(tx *SimpleTransaction, id string, epoch int32, signer c
 		return nil, &SignatureErr{simpleErr{err: err, msg: "NewSimpleProofTuple() on Transaction"}}
 	}
 
-	epochPair := NewSimpleEpochPair(id, epoch)
-	eHashed, err := digestMarshaler(epochPair)
+	EpochTriplet := NewSimpleEpochTriplet(id, epoch, balance)
+	eHashed, err := digestMarshaler(EpochTriplet)
 	if err != nil {
 		return nil, &DigestErr{simpleErr{err: err, msg: "NewSimpleProofTuple() on Epoch"}}
 	}
@@ -49,7 +49,7 @@ func NewSimpleProofTuple(tx *SimpleTransaction, id string, epoch int32, signer c
 	b64EpochSign := base64.StdEncoding.EncodeToString(epochSign)
 	return &SimpleProofTuple{
 		protoProofTuple: &Snapshot_ProofTuple{
-			Epoch:           epochPair.protoEpochPair,
+			Epoch:           EpochTriplet.protoEpochTriplet,
 			TransactionSign: b64TransactionSign,
 			EpochSign:       b64EpochSign,
 		},
@@ -85,54 +85,60 @@ func (sp *SimpleProofTuple) GetEpochSignature() string {
 	return sp.protoProofTuple.EpochSign
 }
 
-// GetEpoch returns the SimpleEpochPair embedded in SimpleProofTuple
-func (sp *SimpleProofTuple) GetEpoch() *SimpleEpochPair {
-	return &SimpleEpochPair{
-		protoEpochPair: sp.protoProofTuple.Epoch,
+// GetEpoch returns the SimpleEpochTriplet embedded in SimpleProofTuple
+func (sp *SimpleProofTuple) GetEpoch() *SimpleEpochTriplet {
+	return &SimpleEpochTriplet{
+		protoEpochTriplet: sp.protoProofTuple.Epoch,
 	}
 }
 
-/* SimpleEpochPair implements a (Node Id, Epoch Number) pair used to
+/* SimpleEpochTriplet implements a (Node Id, Epoch Number) pair used to
 describe the number of transactions `Node Id` has been involved with */
-type SimpleEpochPair struct {
-	protoEpochPair *Snapshot_ProofTuple_EpochPair
+type SimpleEpochTriplet struct {
+	protoEpochTriplet *Snapshot_ProofTuple_EpochTriplet
 }
 
-/* NewSimpleEpochPair instantiates a new SimpleEpochPair with the
+/* NewSimpleEpochTriplet instantiates a new SimpleEpochTriplet with the
 given attributes */
-func NewSimpleEpochPair(id string, epoch int32) *SimpleEpochPair {
-	return &SimpleEpochPair{
-		protoEpochPair: &Snapshot_ProofTuple_EpochPair{
-			Id:    id,
-			Epoch: epoch,
+func NewSimpleEpochTriplet(id string, epoch int32, balance float64) *SimpleEpochTriplet {
+	return &SimpleEpochTriplet{
+		protoEpochTriplet: &Snapshot_ProofTuple_EpochTriplet{
+			Id:      id,
+			Epoch:   epoch,
+			Balance: balance,
 		},
 	}
 }
 
-// Marhsal serializes SimpleEpochPair into a slice of bytes
-func (se *SimpleEpochPair) Marshal() ([]byte, error) {
-	out, err := proto.Marshal(se.protoEpochPair)
+// Marhsal serializes SimpleEpochTriplet into a slice of bytes
+func (se *SimpleEpochTriplet) Marshal() ([]byte, error) {
+	out, err := proto.Marshal(se.protoEpochTriplet)
 	if err != nil {
-		return out, &MarshalErr{simpleErr{err: err, msg: "SimpleEpochPair.Marshal()"}}
+		return out, &MarshalErr{simpleErr{err: err, msg: "SimpleEpochTriplet.Marshal()"}}
 	}
 	return out, nil
 }
 
-// Unmarshal deserializes SimpleEpochPair from a slice of bytes
-func (se *SimpleEpochPair) Unmarshal(serial []byte) error {
-	se.protoEpochPair = &Snapshot_ProofTuple_EpochPair{}
-	if err := proto.Unmarshal(serial, se.protoEpochPair); err != nil {
-		return &MarshalErr{simpleErr{err: err, msg: "SimpleEpochPair.Unmarshal()"}}
+// Unmarshal deserializes SimpleEpochTriplet from a slice of bytes
+func (se *SimpleEpochTriplet) Unmarshal(serial []byte) error {
+	se.protoEpochTriplet = &Snapshot_ProofTuple_EpochTriplet{}
+	if err := proto.Unmarshal(serial, se.protoEpochTriplet); err != nil {
+		return &MarshalErr{simpleErr{err: err, msg: "SimpleEpochTriplet.Unmarshal()"}}
 	}
 	return nil
 }
 
 // GetId returns a Node Id portion of the epoch pair
-func (se *SimpleEpochPair) GetId() string {
-	return se.protoEpochPair.GetId()
+func (se *SimpleEpochTriplet) GetId() string {
+	return se.protoEpochTriplet.GetId()
 }
 
 // GetEpochNumber returns the epoch number as an int32
-func (se *SimpleEpochPair) GetEpochNumber() int32 {
-	return se.protoEpochPair.GetEpoch()
+func (se *SimpleEpochTriplet) GetEpochNumber() int32 {
+	return se.protoEpochTriplet.GetEpoch()
+}
+
+// GetBalance returns the balance of the node associated with this epoch
+func (se *SimpleEpochTriplet) GetBalance() float64 {
+	return se.protoEpochTriplet.GetBalance()
 }
