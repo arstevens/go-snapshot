@@ -90,7 +90,7 @@ func TestSnapshot(t *testing.T) {
 		count := 0
 		for id, key := range keys {
 			tup, _ := NewSimpleProofTuple(tx, id, 1, key)
-			if count%5 == 0 {
+			if count%3 == 0 {
 				tup.protoProofTuple.EpochSign = ""
 			}
 			snapshot.AddProof(tup)

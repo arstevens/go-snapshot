@@ -4,7 +4,6 @@ import (
 	"crypto"
 	_ "crypto/sha256"
 	"encoding/base64"
-	"fmt"
 )
 
 /* Verifier is a function type that can verify data was signed by the
@@ -20,7 +19,7 @@ func VerifySnapshot(pass float64, snapshot *SimpleSnapshot, keys map[string]cryp
 	tx := snapshot.GetTransaction()
 	tDigest, err := digestMarshaler(tx)
 	if err != nil {
-		return fmt.Errorf("Transaction digest fail in VerifySnapshot(): %v", err)
+		return &DigestErr{simpleErr{err: err, msg: "VerifySnapshot()"}}
 	}
 
 	totalPasses := 0
@@ -46,18 +45,18 @@ func verifyProofComponents(proof *SimpleProofTuple, pk crypto.PublicKey, verf Ve
 	tSig, _ := base64.StdEncoding.DecodeString(proof.GetTransactionSignature())
 	err := verf(pk, ProofHashFunc, transDigest, tSig)
 	if err != nil {
-		return fmt.Errorf("Unable to verify transaction in verifyProofComponents(): %v", err)
+		return &VerificationErr{simpleErr{err: err, msg: "verifyProofComponents()"}}
 	}
 
 	eDigest, err := digestMarshaler(proof.GetEpoch())
 	if err != nil {
-		return fmt.Errorf("Epoch digest fail in VerifySnapshot(): %v", err)
+		return &DigestErr{simpleErr{err: err, msg: "VerifySnapshot()"}}
 	}
 
 	eSig, _ := base64.StdEncoding.DecodeString(proof.GetEpochSignature())
 	err = verf(pk, ProofHashFunc, eDigest, eSig)
 	if err != nil {
-		return fmt.Errorf("Unable to verify epoch in verifyProofComponents(): %v", err)
+		return &VerificationErr{simpleErr{err: err, msg: "verifyProofComponents()"}}
 	}
 	return nil
 }
@@ -67,7 +66,7 @@ percentage of valid proofs was greater than the pass parameter */
 func didPass(pass float64, totalPass int, total int) error {
 	passStat := float64(totalPass) / float64(total)
 	if passStat < pass {
-		return fmt.Errorf("Not enough passes in VerifySnapshot. Passes %f", passStat)
+		return &PassErr{simpleErr{err: nil, msg: "Not enough passes in VerifySnapshot"}}
 	}
 	return nil
 }

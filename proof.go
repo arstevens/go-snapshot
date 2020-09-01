@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	_ "crypto/sha256"
 	"encoding/base64"
-	"fmt"
 
 	"github.com/gogo/protobuf/proto"
 )
@@ -15,7 +14,7 @@ proofing and verification */
 var ProofHashFunc crypto.Hash = crypto.SHA256
 
 // Interface for any datatype that can be Marshaled
-type Marshaler interface {
+type marshaler interface {
 	Marshal() ([]byte, error)
 }
 
@@ -29,21 +28,21 @@ the given attributes */
 func NewSimpleProofTuple(tx *SimpleTransaction, id string, epoch int32, signer crypto.Signer) (*SimpleProofTuple, error) {
 	tHashed, err := digestMarshaler(tx)
 	if err != nil {
-		return nil, fmt.Errorf("Digest fail in NewSimpleProofTuple(): %v", err)
+		return nil, &DigestErr{simpleErr{err: err, msg: "NewSimpleProofTuple() on Transaction"}}
 	}
 	transactionSign, err := signer.Sign(rand.Reader, tHashed, ProofHashFunc)
 	if err != nil {
-		return nil, fmt.Errorf("Transaction Sign failed in NewSimpleProofTuple(): %v", err)
+		return nil, &SignatureErr{simpleErr{err: err, msg: "NewSimpleProofTuple() on Transaction"}}
 	}
 
 	epochPair := NewSimpleEpochPair(id, epoch)
 	eHashed, err := digestMarshaler(epochPair)
 	if err != nil {
-		return nil, fmt.Errorf("Epoch digest fail in NewSimpleProofTuple(): %v", err)
+		return nil, &DigestErr{simpleErr{err: err, msg: "NewSimpleProofTuple() on Epoch"}}
 	}
 	epochSign, err := signer.Sign(rand.Reader, eHashed, ProofHashFunc)
 	if err != nil {
-		return nil, fmt.Errorf("Epoch Sign failed in NewSimpleProofTuple(): %v", err)
+		return nil, &SignatureErr{simpleErr{err: err, msg: "NewSimpleProofTuple() on Epoch"}}
 	}
 
 	b64TransactionSign := base64.StdEncoding.EncodeToString(transactionSign)
@@ -62,10 +61,10 @@ slices the digest down to the size specified by the hash function.
 Cutting the digest down shouldn't have to be done but for some reason
 the crypto.Hash SHA256 function returns 42 bytes instead of 32 like
 using the crypto/256 library directly does */
-func digestMarshaler(m Marshaler) ([]byte, error) {
+func digestMarshaler(m marshaler) ([]byte, error) {
 	serial, err := m.Marshal()
 	if err != nil {
-		return nil, fmt.Errorf("Transaction Marshal fail in NewSimpleProofTuple(): %v", err)
+		return nil, &MarshalErr{simpleErr{err: err, msg: "NewSimpleProofTuple()"}}
 	}
 
 	hasher := ProofHashFunc.New()
@@ -114,7 +113,7 @@ func NewSimpleEpochPair(id string, epoch int32) *SimpleEpochPair {
 func (se *SimpleEpochPair) Marshal() ([]byte, error) {
 	out, err := proto.Marshal(se.protoEpochPair)
 	if err != nil {
-		return out, fmt.Errorf("Marshal fail in SimpleEpochPair.Marshal(): %v", err)
+		return out, &MarshalErr{simpleErr{err: err, msg: "SimpleEpochPair.Marshal()"}}
 	}
 	return out, nil
 }
@@ -123,7 +122,7 @@ func (se *SimpleEpochPair) Marshal() ([]byte, error) {
 func (se *SimpleEpochPair) Unmarshal(serial []byte) error {
 	se.protoEpochPair = &Snapshot_ProofTuple_EpochPair{}
 	if err := proto.Unmarshal(serial, se.protoEpochPair); err != nil {
-		return fmt.Errorf("Unmarshal fail in SimpleEpochPair.Unmarshal(): %v", err)
+		return &MarshalErr{simpleErr{err: err, msg: "SimpleEpochPair.Unmarshal()"}}
 	}
 	return nil
 }

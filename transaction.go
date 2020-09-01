@@ -1,8 +1,6 @@
 package snapshot
 
 import (
-	"fmt"
-
 	"github.com/golang/protobuf/proto"
 )
 
@@ -23,7 +21,7 @@ slice of bytes and returns an error if unable to marshal */
 func (st *SimpleTransaction) Marshal() ([]byte, error) {
 	out, err := proto.Marshal(st.protoTransaction)
 	if err != nil {
-		return out, fmt.Errorf("Marshal Fail in SimpleTransaction.Marshal(): %v", err)
+		return out, &MarshalErr{simpleErr{err: err, msg: "SimpleTransaction.Marshal()"}}
 	}
 
 	return out, nil
@@ -34,7 +32,7 @@ SimpleTransaction and returns an error if unable to unmarshal */
 func (st *SimpleTransaction) Unmarshal(serial []byte) error {
 	st.protoTransaction = &Transaction{}
 	if err := proto.Unmarshal(serial, st.protoTransaction); err != nil {
-		return fmt.Errorf("Unmarshal fail in SimpleTransaction.Unmarshal(): %v", err)
+		return &MarshalErr{simpleErr{err: err, msg: "SimpleTransaction.Unmarshal()"}}
 	}
 	return nil
 }

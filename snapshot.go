@@ -1,8 +1,6 @@
 package snapshot
 
 import (
-	"fmt"
-
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -23,7 +21,7 @@ func NewSimpleSnapshot(tx *SimpleTransaction) *SimpleSnapshot {
 func (ss *SimpleSnapshot) Marshal() ([]byte, error) {
 	out, err := proto.Marshal(ss.protoSnapshot)
 	if err != nil {
-		return out, fmt.Errorf("Marshal fail in SimpleSnapshot.Marshal(): %v", err)
+		return out, &MarshalErr{simpleErr{err: err, msg: "SimpleSnapshot.Marshal()"}}
 	}
 	return out, nil
 }
@@ -32,7 +30,7 @@ func (ss *SimpleSnapshot) Marshal() ([]byte, error) {
 func (ss *SimpleSnapshot) Unmarshal(serial []byte) error {
 	ss.protoSnapshot = &Snapshot{}
 	if err := proto.Unmarshal(serial, ss.protoSnapshot); err != nil {
-		return fmt.Errorf("Unmarshal failed in SimpleSnapshot.Unmarshal(): %v", err)
+		return &MarshalErr{simpleErr{err: err, msg: "SimpleSnapshot.Unmarshal()"}}
 	}
 	return nil
 }
