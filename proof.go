@@ -123,6 +123,16 @@ func (se *SimpleEpochTriplet) Sign(signer crypto.Signer) ([]byte, error) {
 	return sig, nil
 }
 
+/* Verify checks to see if the provided signature was signed by
+the given public key */
+func (se *SimpleEpochTriplet) Verify(pk crypto.PublicKey, sig []byte, verf Verifier) error {
+	digest, err := digestMarshaler(se)
+	if err != nil {
+		return &DigestErr{simpleErr{err: err, msg: "SimpleEpochTriplet.Verify()"}}
+	}
+	return verf(pk, ProofHashFunc, digest, sig)
+}
+
 // Marshal serializes SimpleEpochTriplet into a slice of bytes
 func (se *SimpleEpochTriplet) Marshal() ([]byte, error) {
 	out, err := proto.Marshal(se.protoEpochTriplet)
