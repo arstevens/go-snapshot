@@ -6,7 +6,7 @@ import (
 	_ "crypto/sha256"
 	"encoding/base64"
 
-	"github.com/gogo/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 /* ProofHashFunc stores the crypto.Hash that is used for transaction

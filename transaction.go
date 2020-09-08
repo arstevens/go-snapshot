@@ -1,7 +1,7 @@
 package snapshot
 
 import (
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 // SimpleTransaction implements a network transaction record

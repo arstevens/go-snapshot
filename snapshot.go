@@ -1,7 +1,7 @@
 package snapshot
 
 import (
-	"github.com/gogo/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 /* SimpleSnapshot implements a collection of post-transaction
